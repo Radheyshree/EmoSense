@@ -1,0 +1,99 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>EmoSense</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <!-- <h1> <center> <big> EMOSENSE - Perform Sentiment Analysis and Gather Insights  </big></center></h1>
+    <h1> </h1> -->
+    <h1 class="emosense-heading">
+        <span class="logo">Emo</span>
+        <span class="title">Sense</span>
+        <span class="tagline">Perform Sentiment Analysis and Gather Insights</span>
+      </h1>
+      
+    <form id="feedback-form">
+        <center> Paste your feedback rows below! </center> 
+        <textarea id="feedback" name="feedback" cols="50" rows="10"></textarea>
+        <button type="submit">Analyze Sentiment</button>
+    </form>
+    <div id="result">
+        <h2>Cumulative Sentiment: <span id="cumulative-sentiment" class="neutral"></span></h2>
+        <p>Positive Lines: <span id="positive-lines" class="positive"></span></p>
+        <p>Negative Lines: <span id="negative-lines" class="negative"></span></p>
+        <p>Neutral Lines: <span id="neutral-lines" class="neutral"></span></p>
+        <h3>Top Positive Words: </h3>
+        <p> (Positive comments and Strong points)</p>
+        <ul id="positive-words">
+            <!-- top positive words will be displayed here -->
+        </ul>
+        <h3>Top Negative Words:</h3>
+        <p> (Negative comments and Scope of improvement)</p>
+        <ul id="negative-words">
+            <!-- top negative words will be displayed here -->
+        </ul>
+        <h3>Top Neutral Words:</h3>
+        <p> (No associated emotional tone or sentiment)</p>
+        <ul id="neutral-words">
+            <!-- top neutral words will be displayed here -->
+        </ul>
+    </div>
+
+    <script>
+        const form = document.getElementById('feedback-form');
+        const feedbackTextarea = document.getElementById('feedback');
+        const resultDiv = document.getElementById('result');
+        const cumulativeSentimentSpan = document.getElementById('cumulative-sentiment');
+        const positiveLinesSpan = document.getElementById('positive-lines');
+        const negativeLinesSpan = document.getElementById('negative-lines');
+        const neutralLinesSpan = document.getElementById('neutral-lines');
+        const positiveWordsUl = document.getElementById('positive-words');
+        const negativeWordsUl = document.getElementById('negative-words');
+        const neutralWordsUl = document.getElementById('neutral-words');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const feedback = feedbackTextarea.value.trim();
+            if (feedback) {
+                try {
+                    const response = await fetch('/analyze', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ feedback })
+                    });
+                    const data = await response.json();
+                    cumulativeSentimentSpan.textContent = data.cumulative_sentiment;
+                    positiveLinesSpan.textContent = data.positive_lines;
+                    negativeLinesSpan.textContent = data.negative_lines;
+                    neutralLinesSpan.textContent = data.neutral_lines;
+                    positiveWordsUl.innerHTML = '';
+                    negativeWordsUl.innerHTML = '';
+                    neutralWordsUl.innerHTML = '';
+                    data.positive_word_freq.forEach((word) => {
+                        const li = document.createElement('li');
+                        li.textContent = `${word[0]} (${word[1]})`;
+                        li.className = 'positive'; 
+                        positiveWordsUl.appendChild(li);
+                    });
+                    data.negative_word_freq.forEach((word) => {
+                        const li = document.createElement('li');
+                        li.textContent = `${word[0]} (${word[1]})`;
+                        li.className = 'negative'; 
+                        negativeWordsUl.appendChild(li);
+                    });
+                    data.neutral_word_freq.forEach((word) => {
+                        const li = document.createElement('li');
+                        li.textContent = `${word[0]} (${word[1]})`;
+                        li.className = 'neutral'; 
+                        neutralWordsUl.appendChild(li);
+                    });
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
